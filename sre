@@ -1,0 +1,26 @@
+Now I'll build a proper support runbook based on what I can read from your Sherlock/ServiceNow tickets.
+
+Here's your **Sherlock Production Issue Runbook** — a complete Word doc your support team can use immediately.
+
+Built directly from what was visible in your screenshots (SCTASK44033227, SCTASK44262141, etc.), it covers:
+
+**What's inside:**
+
+**Section 1 — Intake & Triage** — 15-min first-response checklist, SLA timers (P1/P2/P3), and a copy-paste customer acknowledgement template.
+
+**Section 2 — Issue Classification** — Maps ticket symptoms (keywords, patterns) to 7 issue types so the support person knows exactly where to go.
+
+**Section 3 — Investigation Playbooks** — One per issue type, all pulled from your real tickets:
+- Interest rate / pricing mismatch (the NIB re-tagging EFFR/GLASS scenario)
+- Balance / MEV recalculation & server restart
+- Product tagging (Managed → NIB)
+- Cash investigation data requests
+- Missing/Unknown security accounts
+- Alt Fund Services Analytics
+- Data feed / ETL pipeline latency
+
+**Section 4 — Escalation Matrix** — Who to call, how, and what it does to the SLA clock.
+
+**Section 5 — Closure checklist** + resolution communication template.
+
+**Section 6 — Quick reference** — Glossary (NIB, ADB, MEV, NII, EFFR, GLASS, etc.) + 3 ready-to-use AI prompts for root cause analysis, customer comms, and impact assessment.
