@@ -1,0 +1,143 @@
+Here's your reusable prompt — just paste it into any Claude session:
+
+---
+
+```
+You are acting as a Tech Lead AI Toolkit generator.
+
+## Our Stack
+- **ETL**: Python "Bob jobs" — scheduled scripts that extract, transform, and load data
+- **Storage**: Hydra (file-based database, time-partitioned, Python SDK access)
+- **Backend API**: Python Bottle (sync REST routes) + Tornado (async/websocket handlers)
+- **Frontend**: React + TypeScript
+- **IDE**: VSCode with AI agent/plan/ask modes (GPT-4/5, Claude Sonnet/Opus)
+- **MCPs available**: Jira (read + write), Confluence (read-only)
+- **Team**: Mix of full-stack, backend, and UI developers
+
+## Your Task
+
+Generate the following 8 Markdown files in full, one at a time. Each file should be
+complete, copy-paste ready, and tuned to our stack. After all 8 files, write a short
+"How to use this toolkit" summary.
+
+---
+
+### File 1 — ARCHITECTURE.md
+A system context file for AI agents. Include:
+- ASCII data-flow diagram: Source → Bob ETL → Hydra → API → React UI
+- Responsibilities of each layer (ETL, Hydra, API, UI)
+- Directory conventions for the full project
+- Cross-cutting rules (e.g. no business logic in ETL, no Hydra access outside model layer)
+- A short "AI Agent Instructions" block agents should follow when generating code
+
+---
+
+### File 2 — HYDRA_SKILL.md
+A skill reference for Hydra (file-based DB). Include:
+- What Hydra is (brief)
+- Core read patterns with Python code (basic query, time-partitioned read, staleness check)
+- Core write patterns for ETL (atomic write, schema validation before write)
+- Anti-patterns table (❌ Don't vs ✅ Do)
+- Naming conventions (tables, partitions, columns)
+- An "AI Agent Prompt Snippet" block to prepend to agent sessions
+
+---
+
+### File 3 — ETL_BOB_SKILL.md
+A skill reference for Bob ETL jobs. Include:
+- The EVTL pattern: Extract → Validate → Transform → Load with rules for each step
+- A complete standard job template (Python) with SCHEMA dict, run(run_date) entry point,
+  logging, metrics emission
+- Transform function rules (pure functions, no I/O, separate module)
+- Error handling patterns (retry-able vs fatal vs warning)
+- Unit test pattern for transforms
+- An "AI Agent Prompt Snippet" block
+
+---
+
+### File 4 — API_SKILL.md
+A skill reference for Bottle/Tornado API. Include:
+- Three-layer rule: Route Handler → Service → Model → Hydra
+- Standard JSON response envelope (ok + error shapes) with Python utility functions
+- Bottle sync route pattern (with try/catch and envelope usage)
+- Tornado async handler pattern
+- Service layer pattern (business logic, raises ValueError for bad input)
+- Model layer pattern (Hydra access only)
+- Anti-patterns table
+- An "AI Agent Prompt Snippet" block
+
+---
+
+### File 5 — UI_SKILL.md
+A skill reference for React TypeScript UI. Include:
+- Layer rule: Page → Feature Component → Hook → API Client → Backend
+- TypeScript type definitions mirroring the backend ApiResponse<T> envelope
+- API client layer pattern (/src/api/) with error handling
+- Data-fetching hook pattern (loading/error/empty states, cleanup with cancelled flag)
+- Component pattern consuming the hook
+- Naming conventions table
+- Anti-patterns table
+- An "AI Agent Prompt Snippet" block
+
+---
+
+### File 6 — CUSTOM_AGENTS.md
+Definitions for 5 custom VSCode AI agents. For each agent include a name, purpose, scope,
+expected output files, and a full copy-paste system prompt tuned to our stack:
+1. Bob ETL Coder — generates complete ETL jobs
+2. API Endpoint Builder — generates Bottle/Tornado endpoints with correct layering
+3. React TypeScript UI Builder — generates typed components with data-fetching patterns
+4. Jira Workflow Assistant — uses Jira MCP to bridge tickets and code
+5. Code Reviewer — checks PRs against all layer standards
+
+End with instructions on how to register these agents in VSCode.
+
+---
+
+### File 7 — AI_AGENT_WORKFLOW.md
+A workflow guide for the whole team. Include:
+- Model selection table (task → recommended model → VSCode mode)
+- Session startup template (what to paste at the start of every agent session)
+- Plan mode: when to use it + prompt template
+- Agent mode: best practices (one task per session, review diffs, ask about edge cases)
+- Jira MCP workflow (ticket → code → comment)
+- Confluence MCP workflow (read-only: feeding docs into agent context)
+- A saved prompt library with 4 ready-to-use prompts:
+  "Generate ETL Job", "Generate API Endpoint", "Generate UI Feature", "Write Unit Tests"
+- A "Do Not Let AI Do These Without Human Review" checklist
+
+---
+
+### File 8 — DAILY_WORKFLOW.md
+A daily developer reference. Include:
+- Morning standup prep prompt (uses Jira MCP)
+- New ticket → code workflow (numbered steps)
+- Conventional commit message format with examples + AI auto-generate snippet
+- PR description template (markdown) + AI auto-generate snippet
+- Code reviewer checklist (per layer)
+- Debugging with AI workflow (step-by-step)
+- Quick AI shortcuts table (one-liners for common tasks)
+- When NOT to use AI agent mode
+
+---
+
+## Output Format
+
+- Output each file with a clear header: `# FILE: <filename>`
+- Use proper Markdown throughout (headers, code blocks with language tags, tables)
+- All code examples must use our stack: Python / Bottle / Tornado / React TypeScript
+- Keep each file self-contained — a developer should be able to use it standalone
+- After all 8 files, write a "## How to Use This Toolkit" section with:
+  - Where to put the files in the repo (/docs/skills/)
+  - The single most important rule (always paste ARCHITECTURE.md into every AI session)
+  - Onboarding steps for a new team member
+  - How to keep the skill files up to date as the codebase evolves
+```
+
+---
+
+**Tips for using this prompt:**
+
+- If Claude stops mid-way, just say **"continue with File N"**
+- To customise for your actual Hydra SDK or specific job names, add a line like: *"Our Hydra SDK is imported as `import hydra_sdk as hdb`"* before the task section
+- You can also run it file-by-file: *"Generate only File 3 — ETL_BOB_SKILL.md"* if you want to iterate on one at a time
