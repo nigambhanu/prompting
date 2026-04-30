@@ -1,0 +1,383 @@
+import { useState } from "react";
+
+const COLORS = {
+  bg: "#0a0e1a",
+  surface: "#111827",
+  card: "#1a2235",
+  border: "#1e2d45",
+  accent: "#00d4ff",
+  accent2: "#7c3aed",
+  accent3: "#10b981",
+  accent4: "#f59e0b",
+  text: "#e2e8f0",
+  muted: "#64748b",
+  danger: "#ef4444",
+};
+
+const layers = [
+  { id: "etl", label: "Bob ETL", color: COLORS.accent4, icon: "⚙️", desc: "Python jobs → Hydra" },
+  { id: "hydra", label: "Hydra DB", color: COLORS.accent3, icon: "🗄️", desc: "File-based storage" },
+  { id: "api", label: "API", color: COLORS.accent2, icon: "🔌", desc: "Bottle / Tornado" },
+  { id: "ui", label: "React UI", color: COLORS.accent, icon: "🖥️", desc: "TypeScript" },
+];
+
+const files = [
+  { name: "ARCHITECTURE.md", desc: "System overview for AI agents. Paste into every session.", layer: "all", priority: "🔴 Critical" },
+  { name: "HYDRA_SKILL.md", desc: "Read/write patterns, anti-patterns, agent prompt snippets.", layer: "hydra", priority: "🟠 High" },
+  { name: "ETL_BOB_SKILL.md", desc: "Job template, EVTL pattern, transform rules, test patterns.", layer: "etl", priority: "🟠 High" },
+  { name: "API_SKILL.md", desc: "Route/Service/Model layering, response envelope, Bottle + Tornado patterns.", layer: "api", priority: "🟠 High" },
+  { name: "UI_SKILL.md", desc: "API client pattern, hook pattern, TypeScript types, component template.", layer: "ui", priority: "🟠 High" },
+  { name: "AI_AGENT_WORKFLOW.md", desc: "Model selection guide, session templates, Plan/Agent/Ask best practices.", layer: "all", priority: "🟡 Medium" },
+  { name: "CUSTOM_AGENTS.md", desc: "5 ready-to-register VSCode agents: ETL Coder, API Builder, UI Builder, Jira Assistant, Code Reviewer.", layer: "all", priority: "🟡 Medium" },
+  { name: "DAILY_WORKFLOW.md", desc: "Morning standup prep, commit conventions, PR template, debugging patterns.", layer: "all", priority: "🟡 Medium" },
+];
+
+const agents = [
+  { name: "Bob ETL Coder", icon: "⚙️", color: COLORS.accent4, purpose: "Generates complete, tested Bob ETL jobs", scope: "ETL layer", output: "job file + transform + tests" },
+  { name: "API Endpoint Builder", icon: "🔌", color: COLORS.accent2, purpose: "Generates Bottle/Tornado endpoints with correct layering", scope: "API layer", output: "route + service + model" },
+  { name: "UI Builder", icon: "🖥️", color: COLORS.accent, purpose: "Generates typed React components with data-fetching patterns", scope: "UI layer", output: "type + api + hook + component" },
+  { name: "Jira Workflow Assistant", icon: "📋", color: COLORS.accent3, purpose: "Bridges Jira tickets and code work via MCP", scope: "Planning", output: "subtasks + comments + new tickets" },
+  { name: "Code Reviewer", icon: "🔍", color: "#f472b6", purpose: "Reviews PRs for team standards compliance", scope: "All layers", output: "Critical / Warning / Suggestion list" },
+];
+
+const workflows = [
+  {
+    title: "New Ticket → Code",
+    steps: [
+      { step: "Jira MCP", action: "Fetch & summarise ticket PROJ-NNN" },
+      { step: "Ask mode", action: "Break ticket into subtasks by layer" },
+      { step: "Plan mode", action: "Plan implementation (no code yet)" },
+      { step: "Agent mode", action: "Generate code following skill MD" },
+      { step: "Agent mode", action: "Generate tests" },
+      { step: "Ask mode", action: "Auto-write commit message & PR description" },
+    ],
+  },
+  {
+    title: "Debug a Production Issue",
+    steps: [
+      { step: "Collect", action: "Full stack trace + relevant log lines" },
+      { step: "Ask mode", action: "Paste error + code → diagnose root cause" },
+      { step: "Ask mode", action: "Suggest curl / query to confirm hypothesis" },
+      { step: "Agent mode", action: "Generate the fix" },
+      { step: "Ask mode", action: "Review fix for edge cases" },
+      { step: "Jira MCP", action: "Create follow-up ticket if systemic" },
+    ],
+  },
+  {
+    title: "Morning Standup Prep",
+    steps: [
+      { step: "Jira MCP", action: "Fetch my in-progress tickets" },
+      { step: "Ask mode", action: "Summarise yesterday / today / blockers" },
+      { step: "Review", action: "2-minute edit before standup" },
+    ],
+  },
+];
+
+const rules = [
+  { label: "ETL transforms are pure functions", detail: "No I/O, no side effects, no logging inside transform()", layer: "etl" },
+  { label: "API has 3 layers: Route → Service → Model", detail: "Business logic in Service only; Hydra access in Model only", layer: "api" },
+  { label: "UI: fetch only in /src/api/", detail: "Components use hooks; hooks call API client; never inline fetch", layer: "ui" },
+  { label: "Response envelope on all endpoints", detail: "{status, data, meta} for success; {status, error, meta} for failure", layer: "api" },
+  { label: "Schema validate before every Hydra write", detail: "ETL job calls validate_schema(df, SCHEMA) before load step", layer: "etl" },
+  { label: "TypeScript types mirror backend shapes", detail: "No `any`. Define ApiResponse<T> and resource-specific interfaces", layer: "ui" },
+  { label: "Human review gates on critical paths", detail: "Schema changes, auth logic, new packages, prod config = no AI auto-accept", layer: "all" },
+];
+
+export default function App() {
+  const [tab, setTab] = useState("overview");
+  const [selectedLayer, setSelectedLayer] = useState("all");
+
+  const tabs = [
+    { id: "overview", label: "Architecture" },
+    { id: "files", label: "Skill Files" },
+    { id: "agents", label: "Custom Agents" },
+    { id: "workflows", label: "Workflows" },
+    { id: "rules", label: "Team Rules" },
+  ];
+
+  return (
+    <div style={{ background: COLORS.bg, minHeight: "100vh", fontFamily: "'JetBrains Mono', 'Fira Code', monospace", color: COLORS.text }}>
+      {/* Header */}
+      <div style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, padding: "16px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS.accent, boxShadow: `0 0 8px ${COLORS.accent}` }} />
+          <span style={{ fontSize: 13, color: COLORS.accent, letterSpacing: 2, textTransform: "uppercase" }}>Analytics Platform</span>
+        </div>
+        <span style={{ color: COLORS.border }}>|</span>
+        <span style={{ fontSize: 13, color: COLORS.muted }}>Tech Lead AI Toolkit</span>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          {["Bob ETL", "Hydra", "Bottle/Tornado", "React TS"].map(t => (
+            <span key={t} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, border: `1px solid ${COLORS.border}`, color: COLORS.muted }}>{t}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ background: COLORS.surface, borderBottom: `1px solid ${COLORS.border}`, display: "flex", padding: "0 24px" }}>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              padding: "12px 16px", fontSize: 13,
+              color: tab === t.id ? COLORS.accent : COLORS.muted,
+              borderBottom: `2px solid ${tab === t.id ? COLORS.accent : "transparent"}`,
+              transition: "all 0.15s",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
+
+        {/* OVERVIEW TAB */}
+        {tab === "overview" && (
+          <div>
+            <h2 style={{ fontSize: 18, marginBottom: 4, color: COLORS.text }}>System Architecture</h2>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>Data flow and layer responsibilities — share ARCHITECTURE.md with every AI agent session.</p>
+
+            {/* Flow diagram */}
+            <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 32, overflowX: "auto", paddingBottom: 8 }}>
+              {layers.map((layer, i) => (
+                <div key={layer.id} style={{ display: "flex", alignItems: "center" }}>
+                  <div style={{
+                    background: COLORS.card, border: `1px solid ${layer.color}33`,
+                    borderTop: `3px solid ${layer.color}`, borderRadius: 8,
+                    padding: "16px 20px", minWidth: 160, textAlign: "center",
+                    boxShadow: `0 0 20px ${layer.color}15`
+                  }}>
+                    <div style={{ fontSize: 24, marginBottom: 6 }}>{layer.icon}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: layer.color, marginBottom: 4 }}>{layer.label}</div>
+                    <div style={{ fontSize: 11, color: COLORS.muted }}>{layer.desc}</div>
+                  </div>
+                  {i < layers.length - 1 && (
+                    <div style={{ display: "flex", alignItems: "center", padding: "0 8px" }}>
+                      <div style={{ height: 1, width: 24, background: `linear-gradient(to right, ${layers[i].color}, ${layers[i+1].color})` }} />
+                      <div style={{ color: COLORS.muted, fontSize: 12 }}>▶</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Layer details */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {[
+                { layer: layers[0], points: ["EVTL pattern: Extract → Validate → Transform → Load", "Pure transform functions (no I/O, no side effects)", "Schema validated before every Hydra write", "Structured logging + job metrics emission", "Entry point: run(run_date) for testability"] },
+                { layer: layers[1], points: ["File-based storage, time-partitioned by date", "Atomic writes: full partition overwrite only", "ETL owns writes; API is read-only consumer", "Check data staleness in API layer (>5min warn)", "Never access raw file paths from UI or API routes"] },
+                { layer: layers[2], points: ["Route → Service → Model layering is mandatory", "Standard response envelope on all endpoints", "Bottle (sync routes) + Tornado (async/websocket)", "Service raises ValueError for bad input", "HTTP status codes used semantically"] },
+                { layer: layers[3], points: ["API calls only in /src/api/ — never inline fetch", "All data fetching through custom hooks in /src/hooks/", "TypeScript types mirror backend ApiResponse<T> exactly", "Always handle: loading / error / empty states", "No `any` types — strict TypeScript throughout"] },
+              ].map(({ layer, points }) => (
+                <div key={layer.id} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <span>{layer.icon}</span>
+                    <span style={{ color: layer.color, fontWeight: 700, fontSize: 13 }}>{layer.label}</span>
+                  </div>
+                  {points.map((p, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 11, color: COLORS.muted }}>
+                      <span style={{ color: layer.color, flexShrink: 0 }}>›</span>
+                      <span>{p}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FILES TAB */}
+        {tab === "files" && (
+          <div>
+            <h2 style={{ fontSize: 18, marginBottom: 4 }}>Skill MD Files</h2>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 20 }}>These files go in your repo under <code style={{ color: COLORS.accent }}>/docs/skills/</code>. Paste relevant ones into AI agent context before every session.</p>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              {["all", "etl", "hydra", "api", "ui"].map(l => (
+                <button key={l} onClick={() => setSelectedLayer(l)} style={{
+                  background: selectedLayer === l ? COLORS.accent : "none",
+                  border: `1px solid ${selectedLayer === l ? COLORS.accent : COLORS.border}`,
+                  color: selectedLayer === l ? COLORS.bg : COLORS.muted,
+                  borderRadius: 4, padding: "4px 12px", fontSize: 11, cursor: "pointer", textTransform: "uppercase", letterSpacing: 1
+                }}>{l === "all" ? "All" : l.toUpperCase()}</button>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {files.filter(f => selectedLayer === "all" || f.layer === selectedLayer || f.layer === "all").map(f => (
+                <div key={f.name} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: "14px 16px", display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                      <code style={{ color: COLORS.accent, fontSize: 13 }}>{f.name}</code>
+                      <span style={{ fontSize: 10, color: COLORS.muted }}>{f.priority}</span>
+                    </div>
+                    <p style={{ color: COLORS.muted, fontSize: 11, margin: 0 }}>{f.desc}</p>
+                  </div>
+                  <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: f.layer === "all" ? "#ffffff11" : `${layers.find(l=>l.id===f.layer)?.color}22`, color: f.layer === "all" ? COLORS.muted : layers.find(l=>l.id===f.layer)?.color }}>
+                    {f.layer === "all" ? "ALL LAYERS" : f.layer.toUpperCase()}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 20, background: COLORS.card, border: `1px solid ${COLORS.accent}33`, borderRadius: 8, padding: 16 }}>
+              <div style={{ color: COLORS.accent, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>📁 Recommended repo structure</div>
+              <pre style={{ fontSize: 11, color: COLORS.muted, margin: 0, lineHeight: 1.8 }}>{`/docs
+  /skills
+    ARCHITECTURE.md        ← always paste into AI sessions
+    HYDRA_SKILL.md
+    ETL_BOB_SKILL.md
+    API_SKILL.md
+    UI_SKILL.md
+    AI_AGENT_WORKFLOW.md
+    CUSTOM_AGENTS.md
+    DAILY_WORKFLOW.md`}</pre>
+            </div>
+          </div>
+        )}
+
+        {/* AGENTS TAB */}
+        {tab === "agents" && (
+          <div>
+            <h2 style={{ fontSize: 18, marginBottom: 4 }}>Custom VSCode Agents</h2>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>Register these in VSCode or as custom personas in any AI model. Each has a pre-loaded system prompt tuned to your stack.</p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+              {agents.map(a => (
+                <div key={a.name} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderTop: `3px solid ${a.color}`, borderRadius: 8, padding: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 20 }}>{a.icon}</span>
+                    <span style={{ color: a.color, fontWeight: 700, fontSize: 13 }}>{a.name}</span>
+                  </div>
+                  <p style={{ color: COLORS.muted, fontSize: 11, marginBottom: 10 }}>{a.purpose}</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#ffffff08", color: COLORS.muted }}>Scope: {a.scope}</span>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: `${a.color}22`, color: a.color }}>→ {a.output}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 16 }}>
+              <div style={{ color: COLORS.text, fontSize: 13, fontWeight: 700, marginBottom: 12 }}>⚡ Quick-start: Model selection guide</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { task: "Architecture / ADR decisions", model: "Claude Opus", mode: "Ask" },
+                  { task: "Generate new ETL job", model: "Claude Sonnet", mode: "Plan → Agent" },
+                  { task: "New API endpoint", model: "Claude Sonnet", mode: "Plan → Agent" },
+                  { task: "React component from design", model: "Claude Sonnet", mode: "Agent" },
+                  { task: "Debug complex data issue", model: "Claude Opus", mode: "Ask" },
+                  { task: "Write unit tests", model: "Any Sonnet", mode: "Agent" },
+                  { task: "Jira ticket breakdown", model: "Claude Sonnet", mode: "Ask + MCP" },
+                  { task: "PR code review", model: "Claude Opus", mode: "Ask" },
+                  { task: "Quick syntax fix", model: "Any model", mode: "Inline" },
+                ].map(r => (
+                  <div key={r.task} style={{ background: "#ffffff05", borderRadius: 6, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, color: COLORS.text, marginBottom: 4 }}>{r.task}</div>
+                    <div style={{ fontSize: 10, color: COLORS.accent }}>{r.model}</div>
+                    <div style={{ fontSize: 10, color: COLORS.muted }}>{r.mode}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* WORKFLOWS TAB */}
+        {tab === "workflows" && (
+          <div>
+            <h2 style={{ fontSize: 18, marginBottom: 4 }}>Day-to-Day Workflows</h2>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>Standard playbooks using AI agents + Jira/Confluence MCP.</p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {workflows.map(w => (
+                <div key={w.title} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: 20 }}>
+                  <h3 style={{ fontSize: 14, color: COLORS.accent, marginBottom: 16, margin: "0 0 16px 0" }}>{w.title}</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {w.steps.map((s, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 140 }}>
+                          <div style={{ width: 20, height: 20, borderRadius: "50%", background: COLORS.accent + "22", border: `1px solid ${COLORS.accent}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: COLORS.accent, flexShrink: 0 }}>{i + 1}</div>
+                          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: "#ffffff08", color: COLORS.muted, whiteSpace: "nowrap" }}>{s.step}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: COLORS.text, paddingTop: 2 }}>{s.action}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* MCP section */}
+              <div style={{ background: COLORS.card, border: `1px solid ${COLORS.accent2}44`, borderRadius: 8, padding: 20 }}>
+                <h3 style={{ fontSize: 14, color: COLORS.accent2, margin: "0 0 16px 0" }}>🔗 MCP Integrations</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: COLORS.text, fontWeight: 700, marginBottom: 8 }}>Jira MCP (read + write)</div>
+                    {["Fetch & summarise ticket before coding", "Break epics into dev subtasks", "Auto-generate Jira comments from git diff", "Create follow-up tickets post-incident", "Query board for standup prep"].map(p => (
+                      <div key={p} style={{ fontSize: 11, color: COLORS.muted, marginBottom: 4 }}>› {p}</div>
+                    ))}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: COLORS.text, fontWeight: 700, marginBottom: 8 }}>Confluence MCP (read-only)</div>
+                    {["Pull design docs into agent context", "Verify naming against documented standards", "Fetch runbook steps before automating", "Cross-reference schema docs before ETL changes", "Feed API specs into UI agent sessions"].map(p => (
+                      <div key={p} style={{ fontSize: 11, color: COLORS.muted, marginBottom: 4 }}>› {p}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* RULES TAB */}
+        {tab === "rules" && (
+          <div>
+            <h2 style={{ fontSize: 18, marginBottom: 4 }}>Team Rules & AI Gates</h2>
+            <p style={{ color: COLORS.muted, fontSize: 12, marginBottom: 24 }}>Rules every AI agent must know. Rules AI must never bypass unilaterally.</p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+              {rules.map(r => {
+                const layer = layers.find(l => l.id === r.layer);
+                return (
+                  <div key={r.label} style={{ background: COLORS.card, border: `1px solid ${COLORS.border}`, borderRadius: 8, padding: "14px 16px", display: "flex", gap: 16, alignItems: "flex-start" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: layer?.color || COLORS.muted, marginTop: 5, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, color: COLORS.text, marginBottom: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: 11, color: COLORS.muted }}>{r.detail}</div>
+                    </div>
+                    <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: `${layer?.color || COLORS.muted}22`, color: layer?.color || COLORS.muted, whiteSpace: "nowrap" }}>
+                      {r.layer === "all" ? "ALL" : r.layer.toUpperCase()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ background: COLORS.card, border: `1px solid ${COLORS.danger}44`, borderRadius: 8, padding: 20 }}>
+              <div style={{ color: COLORS.danger, fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🚫 AI Auto-Accept Gates — Always require human review</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[
+                  "Hydra schema changes (table or column)",
+                  "Authentication / security logic",
+                  "New npm or pip package additions",
+                  "Production config / environment variables",
+                  "SQL or query rewrites on large datasets",
+                  "Code marked # CRITICAL in comments",
+                  "Anything touching auth middleware",
+                  "Infrastructure / deployment changes",
+                ].map(item => (
+                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ color: COLORS.danger, fontSize: 12, marginTop: 1 }}>✕</span>
+                    <span style={{ fontSize: 11, color: COLORS.muted }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
